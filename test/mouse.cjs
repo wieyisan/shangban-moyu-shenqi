@@ -1,0 +1,15 @@
+const {_electron:electron}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const os=require('node:os');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'qy-mouse-'));const app=await electron.launch({executablePath:process.env.QINGYU_TEST_EXECUTABLE||require('electron'),args:[path.join(__dirname,'..')],env:{...process.env,QINGYU_TEST_DATA:dir}});try{
+const page=await app.firstWindow();await page.locator('#try-reading').click();await page.locator('#settings-button').click();await page.locator('#word-preset').click();await page.waitForFunction(()=>document.body.classList.contains('immersive'));
+await page.mouse.move(180,160);await page.waitForTimeout(500);assert.equal(await page.locator('#mouse-tools').isVisible(),false);
+const initial=await page.locator('#chapter-text').boundingBox();await page.mouse.move(100,15);await page.locator('#mouse-settings').waitFor({state:'visible'});assert.deepEqual(await page.locator('#chapter-text').boundingBox(),initial,'hover does not reflow local text');await page.screenshot({path:'artifacts/mouse-toolbar-1.2.0.png'});
+await page.locator('#mouse-settings').click();await page.locator('#fontSize').fill('20');await page.locator('#fontSize').dispatchEvent('input');await page.waitForFunction(()=>getComputedStyle(document.querySelector('#chapter-text')).fontSize==='20px');await page.locator('#close-settings').click();await page.mouse.move(200,180);await page.waitForTimeout(500);assert.equal(await page.locator('#mouse-tools').isVisible(),false);
+await page.mouse.move(100,15);await page.locator('#mouse-drag').waitFor({state:'visible'});
+const before=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].getBounds());
+// Feed real DOM pointer handlers deterministic screen coordinates; verify native movement.
+await page.locator('#mouse-drag').evaluate(n=>{n.setPointerCapture=()=>{};n.dispatchEvent(new PointerEvent('pointerdown',{button:0,pointerId:1,screenX:200,screenY:200,bubbles:true}));n.dispatchEvent(new PointerEvent('pointermove',{pointerId:1,screenX:260,screenY:240,bubbles:true}));n.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,bubbles:true}));});
+await page.waitForTimeout(150);const after=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].getBounds());assert.equal(after.x-before.x,60);assert.equal(after.y-before.y,40);
+await page.mouse.move(200,160);await page.waitForTimeout(500);assert.equal(await page.locator('#mouse-tools').isVisible(),false);assert.equal(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].hasShadow()),false);
+await page.mouse.move(100,15);await page.locator('#mouse-expand').click();assert.equal(await page.locator('.main-toolbar').isVisible(),true);
+console.log('PASS: mouse hover reveals, mouse settings changes typography, native drag delta correct, no content jump, auto-collapse, mouse expands controls, no native shadow.');
+}finally{await app.close();fs.rmSync(dir,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exit(1)});

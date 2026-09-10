@@ -1,0 +1,11 @@
+const {_electron:electron}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const os=require('node:os');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'office-escape-i18n-'));let app;
+const launch=()=>electron.launch({executablePath:process.env.QINGYU_TEST_EXECUTABLE||require('electron'),args:[path.join(__dirname,'..')],env:{...process.env,QINGYU_TEST_DATA:dir}});
+try{app=await launch();let page=await app.firstWindow();await page.locator('#site-grid .site-card').first().waitFor();await page.screenshot({path:'docs/images/home-zh.png'});
+await page.locator('#language').selectOption('en');await page.getByRole('button',{name:'Try reading →',exact:true}).waitFor();assert.equal(await page.title(),'Office Escape · Transparent Reader');await page.screenshot({path:'docs/images/home-en.png'});
+await page.getByRole('button',{name:'Try reading →',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#chapter-title').textContent.startsWith('Chapter 1'));
+await page.locator('#settings-button').click();await page.getByRole('button',{name:'▤ Text-only overlay',exact:true}).waitFor();
+const state=await page.evaluate(()=>window.qingyu.call('init'));assert.equal(state.settings.language,'en');
+await page.locator('#language').selectOption('zh-CN');await page.waitForFunction(()=>document.querySelector('#chapter-title').textContent.startsWith('第一章'));await page.locator('#language').selectOption('en');
+await app.close();app=await launch();page=await app.firstWindow();await page.getByRole('button',{name:'Try reading →',exact:true}).waitFor();assert.equal(await page.locator('#language').inputValue(),'en');console.log('PASS: Chinese/English interface, sample chapters, native settings language, persistence across relaunch.');
+}finally{if(app)await app.close();fs.rmSync(dir,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exit(1)});
