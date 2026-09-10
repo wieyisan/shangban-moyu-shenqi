@@ -1,0 +1,7 @@
+onlyBuiltDependencies:
+  - electron
+  - app-builder-bin
+ignoredBuiltDependencies:
+  - electron-winstaller
+allowBuilds:
+  electron-winstaller: false

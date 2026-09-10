@@ -1,0 +1,103 @@
+{
+  "name": "qingyu-reader",
+  "version": "1.3.0",
+  "description": "上班摸鱼神器 / Office Escape — a transparent desktop reader for Windows and macOS",
+  "author": "Office Escape contributors",
+  "license": "MIT",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "dist:win": "electron-builder --win zip --x64",
+    "dist:installer": "electron-builder --win nsis --x64",
+    "test:desktop": "node test/smoke.cjs && node test/formats.cjs && node test/transparency.cjs && node test/mouse.cjs && node test/i18n.cjs",
+    "dist:mac": "electron-builder --mac zip --arm64"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.8",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "electron": "^42.0.0",
+    "electron-builder": "^26.0.12",
+    "playwright": "^1.63.0"
+  },
+  "build": {
+    "appId": "com.qingyu.reader",
+    "productName": "OfficeEscape",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "zip"
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "OfficeEscape-${version}-Windows-${arch}.${ext}",
+      "extraFiles": [
+        {
+          "from": "docs/Windows使用说明.md",
+          "to": "使用说明.md"
+        },
+        {
+          "from": "docs/Windows使用说明.txt",
+          "to": "使用说明.txt"
+        },
+        {
+          "from": "RESEARCH.md",
+          "to": "RESEARCH.md"
+        },
+        {
+          "from": "docs/USER_GUIDE.en.md",
+          "to": "UserGuide.en.md"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        "zip"
+      ],
+      "category": "public.app-category.books",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "artifactName": "OfficeEscape-${version}-macOS-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "README.md",
+          "to": "README.zh-CN.md"
+        },
+        {
+          "from": "README.en.md",
+          "to": "README.en.md"
+        },
+        {
+          "from": "docs/USER_GUIDE.en.md",
+          "to": "UserGuide.en.md"
+        },
+        {
+          "from": "RESEARCH.md",
+          "to": "RESEARCH.md"
+        }
+      ]
+    }
+  },
+  "packageManager": "pnpm@11.19.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wieyisan/shangban-moyu-shenqi.git"
+  },
+  "homepage": "https://github.com/wieyisan/shangban-moyu-shenqi#readme",
+  "bugs": {
+    "url": "https://github.com/wieyisan/shangban-moyu-shenqi/issues"
+  }
+}

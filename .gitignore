@@ -1,0 +1,11 @@
+node_modules/
+release/
+artifacts/
+.DS_Store
+
+.env
+.env.*
+*.log
+coverage/
+playwright-report/
+test-results/
